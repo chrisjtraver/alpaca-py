@@ -10,6 +10,7 @@ from alpaca.broker.enums import (
     AccountType,
     BankAccountType,
     CalendarSubType,
+    CashInterestCurrency,
     DocumentType,
     DriftBandSubType,
     FeePaymentMethod,
@@ -32,6 +33,7 @@ from alpaca.broker.enums import (
 from alpaca.broker.models.accounts import (
     AccountDocument,
     Agreement,
+    CashInterest,
     Contact,
     Disclosures,
     Identity,
@@ -130,6 +132,7 @@ class CreateAccountRequest(NonEmptyRequest):
         agreements (List[Agreement]): The agreements the account holder has signed
         documents (List[Union[AccountDocument, UploadW8BenDocumentRequest]]): The documents the account holder has submitted
         trusted_contact (TrustedContact): The account holder's trusted contact details
+        cash_interest (Optional[Dict[CashInterestCurrency, CashInterest]]): Cash interest configuration
     """
 
     account_type: Optional[Union[AccountType, str]] = None
@@ -142,6 +145,18 @@ class CreateAccountRequest(NonEmptyRequest):
     trusted_contact: Optional[TrustedContact] = None
     currency: Optional[SupportedCurrencies] = None  # None = USD
     enabled_assets: Optional[List[AssetClass]] = None  # None = Default to server
+    cash_interest: Optional[Dict[CashInterestCurrency, CashInterest]] = None
+
+    @field_serializer("cash_interest")
+    def serialize_cash_interest(
+        self, cash_interest: Optional[Dict[CashInterestCurrency, CashInterest]]
+    ) -> Optional[Dict[str, Any]]:
+        if cash_interest is None:
+            return None
+        return {
+            currency.value: tier.model_dump(exclude_none=True)
+            for currency, tier in cash_interest.items()
+        }
 
     @model_validator(mode="before")
     def validate_parameters_only_optional_in_response(cls, values: dict) -> dict:

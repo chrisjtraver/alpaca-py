@@ -8,6 +8,8 @@ from alpaca.broker.enums import (
     AccountSubType,
     AccountType,
     AgreementType,
+    CashInterestCurrency,
+    CashInterestStatus,
     ClearingBroker,
     EmploymentStatus,
     FundingSource,
@@ -39,6 +41,18 @@ class KycResults(BaseModel):
     indeterminate: Optional[Dict[str, Any]] = None
     additional_information: Optional[str] = None
     summary: Optional[str] = None
+
+
+class CashInterest(BaseModel):
+    """Cash interest tier configuration for a specific currency.
+
+    Attributes:
+        apr_tier_name (str): The name of the APR tier.
+        status (Optional[CashInterestStatus]): The status of the cash interest configuration.
+    """
+
+    apr_tier_name: str
+    status: Optional[CashInterestStatus] = None
 
 
 class Contact(BaseModel):
@@ -250,6 +264,7 @@ class Account(ModelWithID):
         agreements (Optional[List[Agreement]]): The agreements the account holder has signed
         documents (Optional[List[AccountDocument]]): The documents the account holder has submitted
         trusted_contact (Optional[TrustedContact]): The account holder's trusted contact details
+        cash_interest (Optional[CashInterest]): Cash interest tier configuration for USD.
     """
 
     account_number: str
@@ -267,6 +282,7 @@ class Account(ModelWithID):
     agreements: Optional[List[Agreement]] = None
     documents: Optional[List[AccountDocument]] = None
     trusted_contact: Optional[TrustedContact] = None
+    cash_interest: Optional[Dict[str, CashInterest]] = None
 
     def __init__(self, **response):
         super().__init__(
@@ -316,6 +332,14 @@ class Account(ModelWithID):
             trusted_contact=(
                 TypeAdapter(TrustedContact).validate_python(response["trusted_contact"])
                 if "trusted_contact" in response
+                else None
+            ),
+            cash_interest=(
+                {
+                    currency: TypeAdapter(CashInterest).validate_python(tier)
+                    for currency, tier in response["cash_interest"].items()
+                }
+                if "cash_interest" in response and response["cash_interest"] is not None
                 else None
             ),
         )

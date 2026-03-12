@@ -558,3 +558,21 @@ class RunStatus(str, Enum):
     TIMEOUT = "TIMEOUT"
     COMPLETED_SUCCESS = "COMPLETED_SUCCESS"
     COMPLETED_ADJUSTED = "COMPLETED_ADJUSTED"
+
+
+class CashInterestStatus(str, Enum):
+    """
+    The possible status values for a cash interest tier configuration.
+    """
+
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    PENDING_CHANGE = "PENDING_CHANGE"
+
+
+class CashInterestCurrency(str, Enum):
+    """
+    The supported currency codes for cash interest tier configuration.
+    """
+
+    USD = "USD"
